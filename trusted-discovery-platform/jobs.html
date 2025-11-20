@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs - Dwar | Trusted Local Discovery</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f8fb;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            min-height: 40vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .job-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: box-shadow 0.2s, transform 0.2s, opacity 0.6s;
+            opacity: 0;
+        }
+        .job-card.visible {
+            opacity: 1;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        footer {
+            background: #007bff;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="fas fa-door-open me-2"></i>Dwar
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="jobs.html">Jobs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="services.html">Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <a class="btn btn-outline-light me-2" href="login.html">Login</a>
+                    <a class="btn btn-light" href="register.html">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- Hero Section for Jobs -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-4">Search Jobs by Location</h1>
+            <p class="lead mb-4">Find jobs that match your skills and location. Start your career journey here!</p>
+        </div>
+    </section>
+    <div class="container mt-5">
+        <div class="search-bar mt-4 mb-4">
+            <input type="text" id="locationInput" class="form-control" placeholder="Enter city...">
+            <input type="text" id="keywordInput" class="form-control" placeholder="Enter job keyword...">
+            <input type="text" id="qualificationInput" class="form-control" placeholder="Enter qualification...">
+            <button id="searchBtn" class="btn btn-primary">Search</button>
+        </div>
+        <div id="loading" class="loading" style="display:none;">
+            <span class="spinner-border text-primary"></span>
+            <p>Searching jobs...</p>
+        </div>
+        <div id="results"></div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Trusted Discovery Platform</p>
+    </footer>
+
+<script>
+    function showLoading(show) {
+        document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+    function showJobs(jobs, qualification) {
+        const results = document.getElementById('results');
+        if (!jobs || jobs.length === 0) {
+            results.innerHTML = `<div class='text-center text-muted py-5'><i class='fas fa-search fa-2x mb-3'></i><h4>No jobs found for your search.</h4></div>`;
+            return;
+        }
+        results.innerHTML = jobs.map(job => `
+            <div class='job-card'>
+                <h5>${job.title || job.job_title || 'Job'}</h5>
+                <p><strong>Company:</strong> ${job.company || job.company_name || 'N/A'}</p>
+                <p><strong>Location:</strong> ${job.location || job.city || 'N/A'}</p>
+                <p><strong>Qualification:</strong> ${qualification || 'N/A'}</p>
+                <p>${job.description || job.snippet || ''}</p>
+                <a href='${job.redirect_url || job.url || '#'}' target='_blank' class='btn btn-outline-primary'>View Details</a>
+            </div>
+        `).join('');
+        // Animate cards
+        setTimeout(() => {
+            document.querySelectorAll('.job-card').forEach((card, i) => {
+                setTimeout(() => card.classList.add('visible'), 120 * i);
+            });
+        }, 100);
+    }
+    async function searchJobs() {
+        const city = document.getElementById('locationInput').value.trim();
+        const keyword = document.getElementById('keywordInput').value.trim();
+        const qualification = document.getElementById('qualificationInput').value.trim();
+        showLoading(true);
+        document.getElementById('results').innerHTML = '';
+        try {
+            const params = new URLSearchParams();
+            if (city) params.append('location', city);
+            if (keyword) params.append('keyword', keyword);
+            if (qualification) params.append('qualification', qualification);
+            const response = await fetch('jobs.php?' + params.toString());
+            const data = await response.json();
+            showLoading(false);
+            if (data.success) {
+                showJobs(data.jobs, qualification);
+            } else {
+                document.getElementById('results').innerHTML = `<div class='text-center text-danger py-5'><i class='fas fa-exclamation-triangle fa-2x mb-3'></i><h4>${data.message || 'No jobs found.'}</h4></div>`;
+            }
+        } catch (error) {
+            showLoading(false);
+            document.getElementById('results').innerHTML = `<div class='text-center text-danger py-5'><i class='fas fa-exclamation-triangle fa-2x mb-3'></i><h4>Error searching jobs. Please try again.</h4></div>`;
+        }
+    }
+    document.getElementById('searchBtn').addEventListener('click', searchJobs);
+    document.getElementById('locationInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') searchJobs(); });
+    document.getElementById('keywordInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') searchJobs(); });
+    document.getElementById('qualificationInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') searchJobs(); });
+</script>
+
+</body>
+</html>

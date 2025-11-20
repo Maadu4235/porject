@@ -1,0 +1,141 @@
+## Login & Profile System - Visual Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FLOW DIAGRAM                              │
+└─────────────────────────────────────────────────────────────┘
+
+1. USER REGISTRATION (register.html)
+   ├─ Fill form
+   ├─ Submit to register.php
+   ├─ Store in database
+   └─ Redirect to login.html
+
+2. USER LOGIN (login.html)
+   ├─ Enter phone & password
+   ├─ Submit to login.php
+   ├─ Verify credentials in database
+   ├─ Create session if valid
+   └─ Redirect to index.html
+
+3. HOME PAGE (index.html)
+   ├─ On load, call check_login.php
+   ├─ If logged in:
+   │  ├─ Show profile dropdown in navbar
+   │  ├─ Show user name in navbar
+   │  └─ Profile sidebar available
+   └─ If not logged in:
+      ├─ Show Login/Register buttons
+      └─ Hide profile sidebar
+
+4. PROFILE SIDEBAR
+   ├─ Show user name
+   ├─ Show user phone
+   ├─ Show user type
+   ├─ Buttons:
+   │  ├─ Edit Profile
+   │  ├─ Settings
+   │  └─ Logout
+
+5. LOGOUT
+   ├─ Call logout.php
+   ├─ Destroy session
+   ├─ Clear localStorage
+   └─ Redirect to index.html
+
+
+┌─────────────────────────────────────────────────────────────┐
+│            NAVBAR BEFORE & AFTER LOGIN                       │
+└─────────────────────────────────────────────────────────────┘
+
+NOT LOGGED IN:
+┌────────────────────────────────────────────────────────────┐
+│ [Dwar Logo] Home | Jobs | Services | Skills | About        │
+│                              [Login] [Register]             │
+└────────────────────────────────────────────────────────────┘
+
+LOGGED IN:
+┌────────────────────────────────────────────────────────────┐
+│ [Dwar Logo] Home | Jobs | Services | Skills | About        │
+│                          [👤 John Doe ▼]                    │
+│                            ├─ My Profile                    │
+│                            ├─ Settings                      │
+│                            └─ Logout                        │
+└────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────┐
+│           PROFILE SIDEBAR (Right Side)                       │
+└─────────────────────────────────────────────────────────────┘
+
+┌─ My Profile ────────────────────────────────────────────┐
+│                                                          │
+│   [👤] User Avatar                                       │
+│                                                          │
+│   John Doe                                               │
+│   Job Seeker                                             │
+│                                                          │
+│   ─────────────────────────────────────────────────────  │
+│   Phone Number                                           │
+│   +91 9876543210                                         │
+│                                                          │
+│   User Type                                              │
+│   [Job Seeker] [Service Provider]                        │
+│                                                          │
+│   [✎ Edit Profile]                                       │
+│   [⚙ Settings]                                           │
+│   [🚪 Logout]                                            │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────┐
+│            DATABASE QUERIES                                  │
+└─────────────────────────────────────────────────────────────┘
+
+REGISTRATION:
+INSERT INTO user (first_name, last_name, phone, password, user_type)
+VALUES (?, ?, ?, ?, ?)
+
+LOGIN:
+SELECT * FROM user WHERE phone = ?
+// Then verify password with password_verify()
+
+CHECK SESSION:
+SELECT first_name, last_name, user_type, phone FROM user WHERE id = ?
+
+LOGOUT:
+// Destroy PHP session
+session_destroy()
+
+
+┌─────────────────────────────────────────────────────────────┐
+│            TESTING CHECKLIST                                 │
+└─────────────────────────────────────────────────────────────┘
+
+✓ Database connection working
+  → http://localhost/trusted-discovery-platform/test-db-connection.php
+
+✓ User table created
+  → Run SQL: CREATE TABLE user (...)
+
+✓ Registration form working
+  → http://localhost/trusted-discovery-platform/register.html
+
+✓ Login form working
+  → http://localhost/trusted-discovery-platform/login.html
+
+✓ Profile displays after login
+  → Check navbar for profile dropdown
+
+✓ Profile sidebar shows
+  → Click profile dropdown to view details
+
+✓ Logout works
+  → Click logout, navbar returns to Login/Register
+
+✓ Session persists on page refresh
+  → Login, refresh page, profile still shows
+
+✓ Test page working
+  → http://localhost/trusted-discovery-platform/test-login.php
