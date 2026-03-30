@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Doctor Finder</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --result-bg: #f9fafb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 760px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .small {
+      color: var(--muted);
+      margin: 0 0 18px;
+      font-size: 14px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input,
+    button {
+      padding: 11px 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    input {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    #result {
+      margin-top: 18px;
+      padding: 14px;
+      background: var(--result-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      min-height: 120px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>AI Doctor Finder</h1>
+    <p class="small">Ask like: <em>"Need a heart specialist in New York"</em></p>
+
+    <div class="search-row">
+      <input id="query" type="text" placeholder="Enter your medical need..." />
+      <button id="askBtn">Find Doctor</button>
+    </div>
+
+    <div id="result">Result will appear here...</div>
+  </main>
+
+  <script>
+    const queryInput = document.getElementById("query");
+    const askBtn = document.getElementById("askBtn");
+    const resultBox = document.getElementById("result");
+
+    async function askDoctorFinder() {
+      const query = queryInput.value.trim();
+      if (!query) {
+        resultBox.textContent = "Please enter a query.";
+        return;
+      }
+
+      resultBox.textContent = "Loading...";
+
+      try {
+        const res = await fetch("http://127.0.0.1:5000/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ query })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          resultBox.textContent = data.error || "Request failed.";
+          return;
+        }
+
+        resultBox.textContent =
+          `Matched Doctors: ${data.matched_count}\n\n` +
+          `AI Recommendation:\n${data.result}`;
+      } catch (error) {
+        resultBox.textContent = "Connection error: " + error.message;
+      }
+    }
+
+    askBtn.addEventListener("click", askDoctorFinder);
+    queryInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") askDoctorFinder();
+    });
+  </script>
+</body>
+</html>
